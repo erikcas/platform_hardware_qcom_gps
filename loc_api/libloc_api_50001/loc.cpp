@@ -45,8 +45,7 @@
 #include <LocDualContext.h>
 #include <cutils/properties.h>
 
-#ifdef MODEM_POWER_VOTE
-#include <pm-service.h>
+#ifdef PLATFORM_MSM8084
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -54,8 +53,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /*MODEM_POWER_VOTE*/
-
+#endif /*PLATFORM_MSM8084*/
 using namespace loc_core;
 
 #define LOC_PM_CLIENT_NAME "GPS"
@@ -359,11 +357,8 @@ static int loc_init(GpsCallbacks* callbacks)
 
     LOC_LOGD("loc_eng_init() success!");
 
-#ifdef MODEM_POWER_VOTE
-    //if index is 0 or more, then we've looked for mdm already
-    LOC_LOGD("%s:%d]: mdm_index: %d", __func__, __LINE__,
-             mdm_index);
-    if (mdm_index < 0) {
+#ifdef PLATFORM_MSM8084
+    if (mdm_fd < 0) {
         struct dev_info modem_info;
         memset(&modem_info, 0, sizeof(struct dev_info));
         if(get_system_info(&modem_info) != RET_SUCCESS) {
@@ -392,57 +387,7 @@ static int loc_init(GpsCallbacks* callbacks)
             }
         }
     }
-
-    if(loc_mdm_info.peripheral_mgr_registered != true) {
-        peripheral_mgr_ret = pm_client_register(loc_pm_event_notifier,
-                                                &loc_mdm_info,
-                                                loc_mdm_info.modem_name,
-                                                LOC_PM_CLIENT_NAME,
-                                                &mdm_state,
-                                                &loc_mdm_info.handle);
-        if(peripheral_mgr_ret == PM_RET_SUCCESS) {
-            loc_mdm_info.peripheral_mgr_supported = true;
-            loc_mdm_info.peripheral_mgr_registered = true;
-            LOC_LOGD("%s:%d]: registered with peripheral mgr for %s",
-                     __func__, __LINE__, loc_mdm_info.modem_name);
-        }
-        else if(peripheral_mgr_ret == PM_RET_UNSUPPORTED) {
-            loc_mdm_info.peripheral_mgr_registered = true;
-            loc_mdm_info.peripheral_mgr_supported = false;
-            LOC_LOGD("%s:%d]: peripheral mgr unsupported for: %s",
-                     __func__, __LINE__, loc_mdm_info.modem_name);
-        }
-        else {
-            //Not setting any flags here so that we can try again the next time around
-            LOC_LOGE("%s:%d]: Error: pm_client_register returned: %d",
-                     __func__, __LINE__, peripheral_mgr_ret);
-        }
-    }
-
-    if(loc_mdm_info.peripheral_mgr_supported == false &&
-       loc_mdm_info.peripheral_mgr_registered == true) {
-        //Peripheral mgr is not supported
-        //use legacy method to open the powerup node
-        LOC_LOGD("%s:%d]: powerup_node: %s", __func__, __LINE__,
-                 loc_mdm_info.powerup_node);
-        loc_mdm_info.mdm_fd = open(loc_mdm_info.powerup_node, O_RDONLY);
-
-        if (loc_mdm_info.mdm_fd < 0) {
-            LOC_LOGE("Error: %s open failed: %s\n",
-                     loc_mdm_info.powerup_node, strerror(errno));
-        } else {
-            LOC_LOGD("%s opens success!", loc_mdm_info.powerup_node);
-        }
-    }
-    else if(loc_mdm_info.peripheral_mgr_supported == true &&
-            loc_mdm_info.peripheral_mgr_registered == true) {
-        LOC_LOGD("%s:%d]: Voting for modem power up", __func__, __LINE__);
-        pm_client_connect(loc_mdm_info.handle);
-    }
-    else {
-        LOC_LOGD("%s:%d]: Not voted for modem power up due to errors", __func__, __LINE__);
-    }
-#endif /*MODEM_POWER_VOTE*/
+#endif //PLATFORM_MSM8084
 err:
     EXIT_LOG(%d, retVal);
     return retVal;
