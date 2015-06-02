@@ -75,8 +75,7 @@ LOCAL_SHARED_LIBRARIES := \
     libloc_core \
     libgps.utils \
     libdl \
-    libmdmdetect \
-    libperipheral_client
+    libmdmdetect
 
 LOCAL_SRC_FILES += \
     loc.cpp \
@@ -94,8 +93,7 @@ endif
 LOCAL_C_INCLUDES:= \
     $(TARGET_OUT_HEADERS)/gps.utils \
     $(TARGET_OUT_HEADERS)/libloc_core \
-    $(TARGET_OUT_HEADERS)/libmdmdetect/inc \
-    $(TARGET_OUT_HEADERS)/libperipheralclient/inc
+    $(TARGET_OUT_HEADERS)/libmdmdetect/inc
 
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_RELATIVE_PATH := hw
